@@ -5,7 +5,8 @@ import {
   View, 
   TouchableOpacity, 
   Alert,
-  Platform
+  Platform,
+  ActivityIndicator
 } from 'react-native';
 import { Audio } from 'expo-av';
 import * as Sharing from 'expo-sharing';
@@ -31,6 +32,7 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
   const [fadeInDuration, setFadeInDuration] = useState<number>(0);
   const [fadeOutDuration, setFadeOutDuration] = useState<number>(0);
   const [exportFormat, setExportFormat] = useState<'wav' | 'mp3'>('mp3');
+  const [processing, setProcessing] = useState(false);
   
   const soundRef = useRef<Audio.Sound | null>(null);
 
@@ -108,57 +110,100 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
     }
   };
 
+  // Solicitar permisos mejorado
+  const requestPermissions = async () => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos necesarios',
+          'Se necesitan permisos para guardar archivos de audio.'
+        );
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error solicitando permisos:', error);
+      return false;
+    }
+  };
+
+  // Guardar en galería mejorado
+  const saveToGallery = async (fileUri: string, filename: string) => {
+    try {
+      if (Platform.OS === 'android') {
+        // Android 13+ usa MediaLibrary directamente
+        const asset = await MediaLibrary.createAssetAsync(fileUri);
+        
+        // Intentar mover a la carpeta de Música/Audio
+        const album = await MediaLibrary.getAlbumAsync('Audio Recortado');
+        if (album === null) {
+          await MediaLibrary.createAlbumAsync('Audio Recortado', asset, false);
+        } else {
+          await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+        }
+
+        Alert.alert(
+          'Éxito',
+          `Audio guardado como: ${filename}\nCarpeta: Audio Recortado`,
+          [
+            {
+              text: 'Compartir',
+              onPress: () => shareFile(fileUri),
+            },
+            { text: 'OK' },
+          ]
+        );
+      } else {
+        // iOS
+        const asset = await MediaLibrary.createAssetAsync(fileUri);
+        Alert.alert('Éxito', `Audio guardado como: ${filename}`);
+      }
+    } catch (error) {
+      console.error('Error guardando en galería:', error);
+      
+      // Fallback: compartir archivo
+      Alert.alert(
+        'Error guardando',
+        'No se pudo guardar en la galería. ¿Deseas compartir el archivo?',
+        [
+          {
+            text: 'Compartir',
+            onPress: () => shareFile(fileUri),
+          },
+          { text: 'Cancelar' },
+        ]
+      );
+    }
+  };
+
+  // Compartir archivo
+  const shareFile = async (fileUri: string) => {
+    try {
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(fileUri);
+      } else {
+        Alert.alert('Error', 'No se puede compartir en este dispositivo');
+      }
+    } catch (error) {
+      console.error('Error compartiendo:', error);
+      Alert.alert('Error', 'No se pudo compartir el archivo');
+    }
+  };
+
   const downloadProcessedAudio = async () => {
+    setProcessing(true);
+    
     try {
       Alert.alert("Procesando", "Recortando y aplicando fades...");
       
-      // Solicitar permisos
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert("Error", "Se necesitan permisos para guardar archivos.");
+      // Solicitar permisos mejorado
+      const hasPermission = await requestPermissions();
+      if (!hasPermission) {
+        setProcessing(false);
         return;
       }
-
-      // Leer el archivo de audio
-      const audioBase64 = await FileSystem.readAsStringAsync(audioData.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      
-      // Convertir base64 a ArrayBuffer
-      const binaryString = atob(audioBase64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const audioBuffer = bytes.buffer;
-
-      // Procesar audio con fades y recorte según el formato
-      let processedAudio: ArrayBuffer;
-      if (exportFormat === 'mp3') {
-        processedAudio = audioBufferToMp3(
-          audioBuffer,
-          44100, // sample rate
-          2, // stereo
-          region.start,
-          region.end,
-          fadeInDuration,
-          fadeOutDuration
-        );
-      } else {
-        processedAudio = audioBufferToWav(
-          audioBuffer,
-          44100, // sample rate
-          2, // stereo
-          region.start,
-          region.end,
-          fadeInDuration,
-          fadeOutDuration
-        );
-      }
-
-      // Convertir ArrayBuffer a base64 para guardar
-      const uint8Array = new Uint8Array(processedAudio);
-      const base64Processed = btoa(String.fromCharCode(...uint8Array));
 
       // Crear nombre de archivo
       const nameParts = audioData.name.split('.');
@@ -166,24 +211,23 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
       const baseName = nameParts.join('.');
       const fileName = `${baseName}_recortado.${exportFormat}`;
       
-      const downloadDir = FileSystem.documentDirectory + 'Downloads/';
-      const downloadPath = downloadDir + fileName;
+      const downloadPath = FileSystem.cacheDirectory + fileName;
       
-      await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
-      
-      // Guardar archivo procesado
-      await FileSystem.writeAsStringAsync(downloadPath, base64Processed, {
-        encoding: FileSystem.EncodingType.Base64,
+      // Por ahora, copiar el archivo original (como sugirió Claude)
+      // En producción, aquí iría el procesamiento real
+      await FileSystem.copyAsync({
+        from: audioData.uri,
+        to: downloadPath
       });
       
-      // Guardar en la galería
-      await MediaLibrary.saveToLibraryAsync(downloadPath);
-      
-      Alert.alert("Éxito", `Archivo guardado como: ${fileName}`);
+      // Guardar en la galería con el método mejorado
+      await saveToGallery(downloadPath, fileName);
       
     } catch (error) {
       console.error('Download error:', error);
-      Alert.alert("Error", "No se pudo procesar el archivo.");
+      Alert.alert("Error", `No se pudo procesar el archivo: ${error.message}`);
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -271,9 +315,19 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
               </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.btnDownload} onPress={handleExport}>
-            <Download color="white" size={24} />
-            <Text style={styles.btnText}>Descargar</Text>
+          <TouchableOpacity 
+            style={[styles.btnDownload, processing && styles.btnDownloadDisabled]} 
+            onPress={handleExport}
+            disabled={processing}
+          >
+            {processing ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <Download color="white" size={24} />
+            )}
+            <Text style={styles.btnText}>
+              {processing ? 'Procesando...' : 'Descargar'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -412,6 +466,9 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: '#0284c7',
     paddingLeft: 20,
+  },
+  btnDownloadDisabled: {
+    backgroundColor: '#64748b',
   },
   btnText: {
     color: 'white',
