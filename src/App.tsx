@@ -49,7 +49,7 @@ export default function App() {
         <div className="app-container">
             <header className="main-header">
                 <div className="header-content">
-                    <img src="/favicon.png" alt="Logo" style={{ width: '32px', height: '32px' }} />
+                    <img src="/favicon.png" alt="Logo" style={{ width: '56px', height: '56px', marginRight: '10px' }} />
                     <div className="header-text">
                         <h1>Cortador de Audio Pro</h1>
                         <span className="badge">Directo en tu dispositivo</span>
@@ -63,8 +63,8 @@ export default function App() {
             <main className="main-content">
                 {!audioData && !loading && (
                     <div className="upload-card">
-                        <div className="icon-wrapper">
-                            <img src="/favicon.png" alt="Icon" style={{ width: '48px', height: '48px' }} />
+                        <div className="icon-wrapper" style={{ width: '120px', height: '120px' }}>
+                            <img src="/favicon.png" alt="Icon" style={{ width: '100px', height: '100px' }} />
                         </div>
                         <h2>Sube tu audio</h2>
                         <p>
