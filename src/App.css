@@ -50,21 +50,22 @@
 }
 
 .upload-card {
-    background-color: #1e293b;
+    background-color: rgba(30, 41, 59, 0.5);
     border-radius: 2rem;
     padding: 2.5rem;
     width: 100%;
-    max-width: 400px;
+    max-width: 450px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 1px solid #334155;
+    border: 2px dashed #334155;
     box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
-    transition: transform 0.2s;
+    transition: all 0.3s;
 }
 
 .upload-card:hover {
-    transform: translateY(-4px);
+    border-color: #38bdf8;
+    background-color: rgba(30, 41, 59, 0.8);
 }
 
 .icon-wrapper {
