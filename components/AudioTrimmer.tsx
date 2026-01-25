@@ -31,7 +31,7 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [fadeInDuration, setFadeInDuration] = useState<number>(0);
   const [fadeOutDuration, setFadeOutDuration] = useState<number>(0);
-  const [exportFormat, setExportFormat] = useState<'wav'>('wav');
+  const [exportFormat, setExportFormat] = useState<'mp3' | 'wav'>('wav');
   const [processing, setProcessing] = useState(false);
 
   const soundRef = useRef<Audio.Sound | null>(null);
@@ -188,6 +188,9 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
         </TouchableOpacity>
         <View style={styles.downloadContainer}>
           <View style={styles.formatSelector}>
+            <TouchableOpacity style={[styles.formatButton, exportFormat === 'mp3' && styles.formatButtonActive]} onPress={() => setExportFormat('mp3')}>
+              <Text style={[styles.formatButtonText, exportFormat === 'mp3' && styles.formatButtonTextActive]}>MP3</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.formatButton, exportFormat === 'wav' && styles.formatButtonActive]} onPress={() => setExportFormat('wav')}>
               <Text style={[styles.formatButtonText, exportFormat === 'wav' && styles.formatButtonTextActive]}>WAV</Text>
             </TouchableOpacity>
