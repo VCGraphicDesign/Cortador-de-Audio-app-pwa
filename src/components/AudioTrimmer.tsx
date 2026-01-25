@@ -116,10 +116,11 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
                 ? ['-c:a', 'libmp3lame', '-ar', '44100', '-ac', '2', '-q:a', '2']
                 : ['-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2'];
 
-            // EXEC: Usamos búsqueda precisa (ss después de i) para que los filtros afade se alineen al 100%
+            // EXEC: Usamos búsqueda de entrada (-ss ANTES de -i) 
+            // Esto resetea los timestamps a 0, haciendo que afade=st=0 empiece justo al inicio del recorte.
             await ffmpeg.exec([
-                '-i', inputName,
                 '-ss', region.start.toFixed(3),
+                '-i', inputName,
                 '-t', duration.toFixed(3),
                 ...filterArgs,
                 ...codecArgs,
