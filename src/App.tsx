@@ -51,8 +51,8 @@ export default function App() {
                 <div className="header-content">
                     <Scissors size={28} color="#38bdf8" />
                     <div className="header-text">
-                        <h1>AudioCutter Pro Web</h1>
-                        <span className="badge">PWA Edition</span>
+                        <h1>Cortador de Audio Pro</h1>
+                        <span className="badge">Directo en tu dispositivo</span>
                     </div>
                 </div>
             </header>
