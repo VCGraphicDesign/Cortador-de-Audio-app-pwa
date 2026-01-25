@@ -61,7 +61,13 @@
         }
       ],
       "expo-asset",
-      "expo-file-system"
+      "expo-file-system",
+      [
+        "ffmpeg-kit-react-native",
+        {
+          "packages": ["https", "audio", "video"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
