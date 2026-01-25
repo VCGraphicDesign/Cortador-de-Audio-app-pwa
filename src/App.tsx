@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Upload } from 'lucide-react';
 import React, { useState } from 'react';
 import './App.css';
 import AudioTrimmer from './components/AudioTrimmer';
