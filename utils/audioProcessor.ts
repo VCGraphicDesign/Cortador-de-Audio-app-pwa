@@ -14,21 +14,12 @@ export const processAudio = async (options: ProcessAudioOptions): Promise<string
   const { inputUri, outputUri, startTime, endTime, fadeInDuration, fadeOutDuration } = options;
 
   try {
-    // Leer el archivo de audio como base64
-    const audioBase64 = await FileSystem.readAsStringAsync(inputUri, {
-      encoding: 'base64',
-    });
+    // Usar fetch para leer el archivo local como ArrayBuffer (más eficiente y sin deprecated warnings)
+    const response = await fetch(inputUri);
+    const arrayBuffer = await response.arrayBuffer();
 
-    // Convertir base64 a ArrayBuffer
-    const binaryString = atob(audioBase64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    const arrayBuffer = bytes.buffer;
-
-    // Detectar si es WAV o MP3
-    const isWav = await isWavFile(inputUri);
+    // Detectar si es WAV mirando los primeros bytes
+    const isWav = isWavHeader(arrayBuffer);
 
     if (isWav) {
       // Procesar WAV
@@ -40,7 +31,8 @@ export const processAudio = async (options: ProcessAudioOptions): Promise<string
         fadeOutDuration
       );
 
-      // Guardar el archivo procesado
+      // Para guardar, FileSystem.writeAsStringAsync requiere base64.
+      // Convertimos el buffer procesado a base64.
       const processedBase64 = arrayBufferToBase64(processedBuffer);
       await FileSystem.writeAsStringAsync(outputUri, processedBase64, {
         encoding: 'base64',
@@ -48,7 +40,7 @@ export const processAudio = async (options: ProcessAudioOptions): Promise<string
 
       return outputUri;
     } else {
-      // Para MP3, por ahora solo copiamos (requiere librería nativa para decodificar)
+      // Si no es WAV, copiamos
       await FileSystem.copyAsync({ from: inputUri, to: outputUri });
       return outputUri;
     }
@@ -58,17 +50,19 @@ export const processAudio = async (options: ProcessAudioOptions): Promise<string
   }
 };
 
-const isWavFile = async (uri: string): Promise<boolean> => {
-  try {
-    const header = await FileSystem.readAsStringAsync(uri, {
-      encoding: 'base64',
-      length: 12,
-    });
-    const decoded = atob(header);
-    return decoded.startsWith('RIFF') && decoded.includes('WAVE');
-  } catch {
-    return false;
-  }
+const isWavHeader = (buffer: ArrayBuffer): boolean => {
+  if (buffer.byteLength < 12) return false;
+  const view = new DataView(buffer);
+
+  // RIFF
+  if (view.getUint8(0) !== 0x52 || view.getUint8(1) !== 0x49 ||
+    view.getUint8(2) !== 0x46 || view.getUint8(3) !== 0x46) return false;
+
+  // WAVE
+  if (view.getUint8(8) !== 0x57 || view.getUint8(9) !== 0x41 ||
+    view.getUint8(10) !== 0x56 || view.getUint8(11) !== 0x45) return false;
+
+  return true;
 };
 
 const processWavAudio = async (
