@@ -100,13 +100,15 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
 
             // Corregido: Usar 'st' (start time) en lugar de 'ss'
             if (safeFadeIn > 0) {
-                fadeFilters.push(`afade=t=in:st=0:d=${safeFadeIn.toFixed(2)}`);
+                // curve=exp hace que empiece mucho más bajo y se note más el crecimiento
+                fadeFilters.push(`afade=t=in:st=0:d=${safeFadeIn.toFixed(2)}:curve=exp`);
             }
 
             if (safeFadeOut > 0) {
                 // Asegurar que el fade out no empiece antes del inicio del audio
                 const fadeOutStart = Math.max(0, duration - safeFadeOut);
-                fadeFilters.push(`afade=t=out:st=${fadeOutStart.toFixed(2)}:d=${safeFadeOut.toFixed(2)}`);
+                // curve=exp para el fade out hace que el desvanecimiento sea más elegante
+                fadeFilters.push(`afade=t=out:st=${fadeOutStart.toFixed(2)}:d=${safeFadeOut.toFixed(2)}:curve=exp`);
             }
 
             const filterArgs = fadeFilters.length > 0 ? ['-af', fadeFilters.join(',')] : [];
