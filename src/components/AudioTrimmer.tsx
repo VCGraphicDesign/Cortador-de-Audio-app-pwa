@@ -83,26 +83,46 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             const inputName = 'input_file';
             const outputName = `output_file.${exportFormat}`;
 
+            // Logger para ver qué está pasando en la consola de la tablet
+            ffmpeg.on('log', ({ message }) => {
+                console.log(`[FFmpeg Log]: ${message}`);
+            });
+
             // Write file to FFmpeg WASM FS
             await ffmpeg.writeFile(inputName, await fetchFile(audioData.uri));
 
             const duration = region.end - region.start;
             const fadeFilters = [];
-            if (fadeInDuration > 0) fadeFilters.push(`afade=t=in:ss=0:d=${fadeInDuration}`);
-            if (fadeOutDuration > 0) fadeFilters.push(`afade=t=out:st=${duration - fadeOutDuration}:d=${fadeOutDuration}`);
+
+            // Corregido: Usar 'st' (start time) en lugar de 'ss'
+            if (fadeInDuration > 0) {
+                fadeFilters.push(`afade=t=in:st=0:d=${fadeInDuration}`);
+            }
+
+            if (fadeOutDuration > 0) {
+                // Asegurar que el fade out no empiece antes del inicio del audio
+                const fadeOutStart = Math.max(0, duration - fadeOutDuration);
+                fadeFilters.push(`afade=t=out:st=${fadeOutStart}:d=${fadeOutDuration}`);
+            }
 
             const filterArgs = fadeFilters.length > 0 ? ['-af', fadeFilters.join(',')] : [];
+
+            // Añadimos codecs explícitos para asegurar compatibilidad
+            const codecArgs = exportFormat === 'mp3'
+                ? ['-c:a', 'libmp3lame', '-q:a', '2']
+                : ['-c:a', 'pcm_s16le'];
 
             await ffmpeg.exec([
                 '-i', inputName,
                 '-ss', region.start.toString(),
                 '-t', duration.toString(),
                 ...filterArgs,
+                ...codecArgs,
                 outputName
             ]);
 
             const data = await ffmpeg.readFile(outputName);
-            const url = URL.createObjectURL(new Blob([(data as any).buffer], { type: `audio/${exportFormat}` }));
+            const url = URL.createObjectURL(new Blob([(data as any).buffer], { type: exportFormat === 'mp3' ? 'audio/mpeg' : 'audio/wav' }));
 
             const link = document.createElement('a');
             link.href = url;
@@ -113,7 +133,7 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
 
         } catch (err) {
             console.error(err);
-            alert("Error al procesar el audio.");
+            alert("Error al procesar el audio. Revisa la consola.");
         } finally {
             setProcessing(false);
         }
