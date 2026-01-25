@@ -94,23 +94,27 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             const duration = region.end - region.start;
             const fadeFilters = [];
 
+            // Seguridad Temporal: Si el audio es más corto que los fades, los ajustamos
+            const safeFadeIn = Math.min(fadeInDuration, duration / 2);
+            const safeFadeOut = Math.min(fadeOutDuration, duration / 2);
+
             // Corregido: Usar 'st' (start time) en lugar de 'ss'
-            if (fadeInDuration > 0) {
-                fadeFilters.push(`afade=t=in:st=0:d=${fadeInDuration}`);
+            if (safeFadeIn > 0) {
+                fadeFilters.push(`afade=t=in:st=0:d=${safeFadeIn.toFixed(2)}`);
             }
 
-            if (fadeOutDuration > 0) {
+            if (safeFadeOut > 0) {
                 // Asegurar que el fade out no empiece antes del inicio del audio
-                const fadeOutStart = Math.max(0, duration - fadeOutDuration);
-                fadeFilters.push(`afade=t=out:st=${fadeOutStart}:d=${fadeOutDuration}`);
+                const fadeOutStart = Math.max(0, duration - safeFadeOut);
+                fadeFilters.push(`afade=t=out:st=${fadeOutStart.toFixed(2)}:d=${safeFadeOut.toFixed(2)}`);
             }
 
             const filterArgs = fadeFilters.length > 0 ? ['-af', fadeFilters.join(',')] : [];
 
-            // Añadimos codecs explícitos para asegurar compatibilidad
+            // Añadimos codecs y forzamos re-muestreo a 44.1k para evitar problemas de volumen
             const codecArgs = exportFormat === 'mp3'
-                ? ['-c:a', 'libmp3lame', '-q:a', '2']
-                : ['-c:a', 'pcm_s16le'];
+                ? ['-c:a', 'libmp3lame', '-ar', '44100', '-q:a', '2']
+                : ['-c:a', 'pcm_s16le', '-ar', '44100'];
 
             await ffmpeg.exec([
                 '-i', inputName,
