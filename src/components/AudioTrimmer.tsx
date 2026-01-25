@@ -111,15 +111,16 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
 
             const filterArgs = fadeFilters.length > 0 ? ['-af', fadeFilters.join(',')] : [];
 
-            // Añadimos codecs y forzamos re-muestreo a 44.1k para evitar problemas de volumen
+            // Añadimos codecs y forzamos re-muestreo a 44.1k + Stereo para máxima compatibilidad
             const codecArgs = exportFormat === 'mp3'
-                ? ['-c:a', 'libmp3lame', '-ar', '44100', '-q:a', '2']
-                : ['-c:a', 'pcm_s16le', '-ar', '44100'];
+                ? ['-c:a', 'libmp3lame', '-ar', '44100', '-ac', '2', '-q:a', '2']
+                : ['-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2'];
 
+            // EXEC: Usamos búsqueda precisa (ss después de i) para que los filtros afade se alineen al 100%
             await ffmpeg.exec([
                 '-i', inputName,
-                '-ss', region.start.toString(),
-                '-t', duration.toString(),
+                '-ss', region.start.toFixed(3),
+                '-t', duration.toFixed(3),
                 ...filterArgs,
                 ...codecArgs,
                 outputName
