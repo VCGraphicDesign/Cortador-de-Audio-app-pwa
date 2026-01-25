@@ -1,3 +1,4 @@
+import { Scissors } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface WaveformWebProps {
@@ -165,48 +166,73 @@ const WaveformWeb: React.FC<WaveformWebProps> = ({
             />
 
             {/* Start Handle */}
-            <div style={{
-                position: 'absolute',
-                left: `${(region.start / duration) * 100}%`,
-                top: '-10px', bottom: '-10px', width: '4px',
-                backgroundColor: '#38bdf8',
-                transform: 'translateX(-50%)',
-                cursor: 'ew-resize',
-                zIndex: 10
-            }}>
-                <div style={{
-                    position: 'absolute', top: '50%', left: '50%',
-                    width: '24px', height: '40px',
-                    backgroundColor: '#38bdf8', borderRadius: '4px',
-                    transform: 'translate(-50%, -50%)',
-                    boxShadow: '0 4px 6px rgb(0 0 0 / 0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+            <div
+                onMouseDown={(e) => { e.stopPropagation(); setDragging('start'); }}
+                onTouchStart={(e) => { e.stopPropagation(); setDragging('start'); }}
+                style={{
+                    position: 'absolute',
+                    left: `${(region.start / duration) * 100}%`,
+                    top: '-20px', bottom: '-20px', width: '40px', // Hit area muy grande
+                    transform: 'translateX(-50%)',
+                    cursor: 'ew-resize',
+                    zIndex: 20,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
                 }}>
-                    <div style={{ width: '2px', height: '15px', backgroundColor: 'white', opacity: 0.5, margin: '0 1px' }} />
-                    <div style={{ width: '2px', height: '15px', backgroundColor: 'white', opacity: 0.5, margin: '0 1px' }} />
+                <div style={{
+                    width: '6px', height: '100%',
+                    backgroundColor: dragging === 'start' ? '#fbbf24' : '#38bdf8',
+                    borderRadius: '3px',
+                    position: 'relative'
+                }}>
+                    {/* Bubble Handle Top */}
+                    <div style={{
+                        position: 'absolute', top: '0', left: '50%',
+                        width: '28px', height: '28px',
+                        backgroundColor: dragging === 'start' ? '#fbbf24' : '#38bdf8',
+                        borderRadius: '50%', transform: 'translate(-50%, -50%)',
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <Scissors size={14} color="#0f172a" />
+                    </div>
                 </div>
             </div>
 
             {/* End Handle */}
-            <div style={{
-                position: 'absolute',
-                left: `${(region.end / duration) * 100}%`,
-                top: '-10px', bottom: '-10px', width: '4px',
-                backgroundColor: '#38bdf8',
-                transform: 'translateX(-50%)',
-                cursor: 'ew-resize',
-                zIndex: 10
-            }}>
-                <div style={{
-                    position: 'absolute', top: '50%', left: '50%',
-                    width: '24px', height: '40px',
-                    backgroundColor: '#38bdf8', borderRadius: '4px',
-                    transform: 'translate(-50%, -50%)',
-                    boxShadow: '0 4px 6px rgb(0 0 0 / 0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+            <div
+                onMouseDown={(e) => { e.stopPropagation(); setDragging('end'); }}
+                onTouchStart={(e) => { e.stopPropagation(); setDragging('end'); }}
+                style={{
+                    position: 'absolute',
+                    left: `${(region.end / duration) * 100}%`,
+                    top: '-20px', bottom: '-20px', width: '40px', // Hit area muy grande
+                    transform: 'translateX(-50%)',
+                    cursor: 'ew-resize',
+                    zIndex: 20,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
                 }}>
-                    <div style={{ width: '2px', height: '15px', backgroundColor: 'white', opacity: 0.5, margin: '0 1px' }} />
-                    <div style={{ width: '2px', height: '15px', backgroundColor: 'white', opacity: 0.5, margin: '0 1px' }} />
+                <div style={{
+                    width: '6px', height: '100%',
+                    backgroundColor: dragging === 'end' ? '#fbbf24' : '#38bdf8',
+                    borderRadius: '3px',
+                    position: 'relative'
+                }}>
+                    {/* Bubble Handle Bottom */}
+                    <div style={{
+                        position: 'absolute', bottom: '0', left: '50%',
+                        width: '28px', height: '28px',
+                        backgroundColor: dragging === 'end' ? '#fbbf24' : '#38bdf8',
+                        borderRadius: '50%',
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transform: 'translate(-50%, 50%)'
+                    }}>
+                        <Scissors size={14} color="#0f172a" />
+                    </div>
                 </div>
             </div>
         </div>
