@@ -63,8 +63,8 @@ export default function App() {
             <main className="main-content">
                 {!audioData && !loading && (
                     <div className="upload-card">
-                        <div className="icon-wrapper" style={{ width: '120px', height: '120px' }}>
-                            <img src="/favicon.png" alt="Icon" style={{ width: '100px', height: '100px' }} />
+                        <div className="icon-wrapper" style={{ width: '120px', height: '120px', backgroundColor: '#0284c7' }}>
+                            <Upload size={64} color="white" />
                         </div>
                         <h2>Sube tu audio</h2>
                         <p>
