@@ -1,18 +1,17 @@
-
-import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  SafeAreaView, 
-  StatusBar,
-  Platform
-} from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
+﻿
 import { Audio } from 'expo-av';
-import { Scissors, Upload, AlertCircle } from 'lucide-react-native';
+import * as DocumentPicker from 'expo-document-picker';
+import { AlertCircle, Scissors, Upload } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import AudioTrimmer from '../components/AudioTrimmer';
 
 export default function App() {
@@ -24,19 +23,19 @@ export default function App() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'audio/*',
+        type: 'audio/wav',
         copyToCacheDirectory: true
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        
+
         // Carga ligera para obtener metadatos
         const { sound } = await Audio.Sound.createAsync({ uri: asset.uri });
         const status = await sound.getStatusAsync();
-        
+
         if (status.isLoaded) {
           setAudioData({
             uri: asset.uri,
@@ -62,7 +61,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      
+
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
           <Scissors size={24} color="#38bdf8" />
@@ -81,11 +80,11 @@ export default function App() {
             </View>
             <Text style={styles.cardTitle}>Sube tu Audio</Text>
             <Text style={styles.cardText}>
-              Selecciona un archivo de tu dispositivo para empezar a editar sin l�mites.
+              Selecciona un archivo de tu dispositivo para empezar a editar sin límites.
             </Text>
 
-            <TouchableOpacity 
-              style={styles.buttonPrimary} 
+            <TouchableOpacity
+              style={styles.buttonPrimary}
               onPress={pickDocument}
               activeOpacity={0.7}
             >
@@ -109,9 +108,9 @@ export default function App() {
         )}
 
         {audioData && !loading && (
-          <AudioTrimmer 
-            audioData={audioData} 
-            onReset={resetApp} 
+          <AudioTrimmer
+            audioData={audioData}
+            onReset={resetApp}
           />
         )}
       </View>
@@ -123,9 +122,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f172a',
-    ...Platform.select({
-      web: { height: '100vh' }
-    })
   },
   header: {
     backgroundColor: '#1e293b',
