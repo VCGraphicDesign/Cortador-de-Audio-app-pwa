@@ -25,7 +25,7 @@ export default function App() {
       setError(null);
 
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'audio/wav',
+        type: 'audio/*',
         copyToCacheDirectory: true
       });
 
