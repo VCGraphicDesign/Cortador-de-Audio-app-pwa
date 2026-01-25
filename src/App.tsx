@@ -1,4 +1,4 @@
-import { AlertCircle, Scissors, Upload } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import './App.css';
 import AudioTrimmer from './components/AudioTrimmer';
@@ -49,10 +49,13 @@ export default function App() {
         <div className="app-container">
             <header className="main-header">
                 <div className="header-content">
-                    <Scissors size={28} color="#38bdf8" />
+                    <img src="/favicon.png" alt="Logo" style={{ width: '32px', height: '32px' }} />
                     <div className="header-text">
                         <h1>Cortador de Audio Pro</h1>
                         <span className="badge">Directo en tu dispositivo</span>
+                    </div>
+                    <div style={{ marginLeft: 'auto', fontSize: '0.75rem', opacity: 0.5, color: '#94a3b8' }}>
+                        v1.0.0 • Client Side
                     </div>
                 </div>
             </header>
@@ -61,11 +64,14 @@ export default function App() {
                 {!audioData && !loading && (
                     <div className="upload-card">
                         <div className="icon-wrapper">
-                            <Upload size={48} color="#38bdf8" />
+                            <img src="/favicon.png" alt="Icon" style={{ width: '48px', height: '48px' }} />
                         </div>
-                        <h2>Sube tu Audio</h2>
+                        <h2>Sube tu audio</h2>
                         <p>
-                            Selecciona un archivo (MP3, WAV, etc.) para editarlo directamente en tu navegador.
+                            Arrastra un archivo (mp3, wav, flac) o haz clic para seleccionar.
+                        </p>
+                        <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '-1rem' }}>
+                            Procesamiento 100% local. El archivo no sale de tu red.
                         </p>
 
                         <label className="primary-button">
