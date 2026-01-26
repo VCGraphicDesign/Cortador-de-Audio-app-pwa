@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { Download, Pause, Play, RotateCcw } from 'lucide-react';
@@ -32,15 +35,21 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
     }, []);
 
     const loadFFmpeg = async () => {
-        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-        const ffmpeg = ffmpegRef.current;
+        try {
+            // Using a more stable version and handling potential COOP/COEP issues
+            const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+            const ffmpeg = ffmpegRef.current;
 
-        await ffmpeg.load({
-            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-        });
+            await ffmpeg.load({
+                coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+            });
 
-        setFfmpegLoaded(true);
+            setFfmpegLoaded(true);
+        } catch (error) {
+            console.error("Error loading FFmpeg:", error);
+            alert("No se pudo cargar el motor de audio. Asegúrate de tener conexión a internet.");
+        }
     };
 
     const togglePlayback = () => {
@@ -83,17 +92,14 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             const inputName = 'input_file';
             const outputName = `output_file.${exportFormat}`;
 
-            // Logger para ver qué está pasando en la consola de la tablet
             ffmpeg.on('log', ({ message }) => {
                 console.log(`[FFmpeg Log]: ${message}`);
             });
 
-            // Write file to FFmpeg WASM FS
             await ffmpeg.writeFile(inputName, await fetchFile(audioData.uri));
 
             const duration = region.end - region.start;
             const fadeFilters = [];
-            // Volvemos a lineal (por defecto) pero con 4s para que se note suave y profesional
             const fadeDur = 4.0;
             const safeFadeIn = Math.min(fadeDur, duration / 2.5);
             const safeFadeOut = Math.min(fadeDur, duration / 2.5);
@@ -109,13 +115,10 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
 
             const filterArgs = fadeFilters.length > 0 ? ['-af', fadeFilters.join(',')] : [];
 
-            // Añadimos codecs y forzamos re-muestreo a 44.1k + Stereo para máxima compatibilidad
             const codecArgs = exportFormat === 'mp3'
                 ? ['-c:a', 'libmp3lame', '-ar', '44100', '-ac', '2', '-q:a', '2']
                 : ['-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2'];
 
-            // EXEC: Usamos búsqueda de entrada (-ss ANTES de -i) 
-            // Esto resetea los timestamps a 0, haciendo que afade=st=0 empiece justo al inicio del recorte.
             await ffmpeg.exec([
                 '-ss', region.start.toFixed(3),
                 '-i', inputName,
@@ -126,22 +129,58 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             ]);
 
             const data = await ffmpeg.readFile(outputName);
-            const url = URL.createObjectURL(new Blob([(data as any).buffer], { type: exportFormat === 'mp3' ? 'audio/mpeg' : 'audio/wav' }));
+            const fileName = audioData.name.replace(/\.[^/.]+$/, "") + `_cut.${exportFormat}`;
+            const mimeType = exportFormat === 'mp3' ? 'audio/mpeg' : 'audio/wav';
 
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = audioData.name.replace(/\.[^/.]+$/, "") + `_cut.${exportFormat}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const uint8Array = new Uint8Array((data as any).buffer);
+
+            if (Capacitor.isNativePlatform()) {
+                // Capacitor: Save and Share
+                const base64Data = await uint8ArrayToBase64(uint8Array);
+                const savedFile = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: Directory.Cache
+                });
+
+                await Share.share({
+                    title: 'Audio Recortado',
+                    text: 'Aquí tienes tu audio procesado con Cortador Pro',
+                    url: savedFile.uri,
+                    dialogTitle: 'Guardar o compartir audio'
+                });
+            } else {
+                // Web: Classic download
+                const url = URL.createObjectURL(new Blob([uint8Array], { type: mimeType }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
 
         } catch (err) {
             console.error(err);
-            alert("Error al procesar el audio. Revisa la consola.");
+            alert("Error al procesar el audio. Asegúrate de que el formato sea compatible.");
         } finally {
             setProcessing(false);
         }
     };
+
+    const uint8ArrayToBase64 = (uint8: Uint8Array): Promise<string> => {
+        return new Promise((resolve) => {
+            const blob = new Blob([uint8], { type: 'application/octet-stream' });
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result as string;
+                resolve(result.split(',')[1]);
+            };
+            reader.readAsDataURL(blob);
+        });
+    };
+
 
     const formatTime = (secs: number) => {
         const m = Math.floor(secs / 60);
