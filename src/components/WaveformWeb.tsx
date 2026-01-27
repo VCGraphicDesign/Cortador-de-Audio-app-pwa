@@ -155,8 +155,7 @@ const WaveformWeb: React.FC<WaveformWebProps> = ({
                 touchAction: 'none',
                 overflow: 'visible',
                 marginTop: '10px',
-                marginHorizontal: '20px', // Added breathing room for handles
-                margin: '10px auto' // Simplified
+                margin: '10px auto' // This provides 20px on each side since width is calc(100% - 40px)
             }}
             onMouseDown={(e) => handleStart(e.clientX)}
             onTouchStart={(e) => handleStart(e.touches[0].clientX)}
