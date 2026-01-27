@@ -49,6 +49,12 @@
     width: 100%;
 }
 
+@media (max-width: 640px) {
+    .main-content {
+        padding: 0.75rem;
+    }
+}
+
 .upload-card {
     background-color: rgba(30, 41, 59, 0.5);
     border-radius: 2rem;
