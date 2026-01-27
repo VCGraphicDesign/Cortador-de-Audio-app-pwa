@@ -52,10 +52,7 @@ export default function App() {
                     <img src="/favicon.png" alt="Logo" style={{ width: '40px', height: '40px', marginRight: '10px' }} />
                     <div className="header-text">
                         <h1>Cortador de Audio Pro</h1>
-                        <span className="badge">Directo en tu dispositivo</span>
-                    </div>
-                    <div style={{ marginLeft: 'auto', fontSize: '0.75rem', opacity: 0.5, color: '#94a3b8' }}>
-                        v1.0.0 • Client Side
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: '#94a3b8' }}>Directo en tu dispositivo</p>
                     </div>
                 </div>
             </header>
