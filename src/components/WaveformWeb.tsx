@@ -140,18 +140,21 @@ const WaveformWeb: React.FC<WaveformWebProps> = ({
         };
     }, [dragging, region]);
 
+    const [isMobile] = useState(window.innerWidth < 640);
+    const waveHeight = isMobile ? 80 : 140;
+
     return (
         <div
             ref={containerRef}
             style={{
                 width: '100%',
-                height: '140px',
+                height: `${waveHeight}px`,
                 backgroundColor: '#0f172a',
                 borderRadius: '1rem',
                 position: 'relative',
                 touchAction: 'none',
                 overflow: 'visible',
-                marginTop: '20px'
+                marginTop: '10px'
             }}
             onMouseDown={(e) => handleStart(e.clientX)}
             onTouchStart={(e) => handleStart(e.touches[0].clientX)}
@@ -161,7 +164,7 @@ const WaveformWeb: React.FC<WaveformWebProps> = ({
             <canvas
                 ref={canvasRef}
                 width={1000}
-                height={140}
+                height={waveHeight}
                 style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
             />
 
