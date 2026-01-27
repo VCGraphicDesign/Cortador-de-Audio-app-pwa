@@ -147,14 +147,16 @@ const WaveformWeb: React.FC<WaveformWebProps> = ({
         <div
             ref={containerRef}
             style={{
-                width: '100%',
+                width: 'calc(100% - 40px)',
                 height: `${waveHeight}px`,
                 backgroundColor: '#0f172a',
                 borderRadius: '1rem',
                 position: 'relative',
                 touchAction: 'none',
                 overflow: 'visible',
-                marginTop: '10px'
+                marginTop: '10px',
+                marginHorizontal: '20px', // Added breathing room for handles
+                margin: '10px auto' // Simplified
             }}
             onMouseDown={(e) => handleStart(e.clientX)}
             onTouchStart={(e) => handleStart(e.touches[0].clientX)}
