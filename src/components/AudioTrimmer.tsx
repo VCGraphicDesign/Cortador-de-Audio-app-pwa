@@ -100,9 +100,10 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
 
             const duration = region.end - region.start;
             const fadeFilters = [];
-            const fadeDur = 4.0;
-            const safeFadeIn = Math.min(fadeDur, duration / 2.5);
-            const safeFadeOut = Math.min(fadeDur, duration / 2.5);
+
+            // Use the durations from state
+            const safeFadeIn = fadeInDuration > 0 ? Math.min(fadeInDuration, duration / 2) : 0;
+            const safeFadeOut = fadeOutDuration > 0 ? Math.min(fadeOutDuration, duration / 2) : 0;
 
             if (safeFadeIn > 0) {
                 fadeFilters.push(`afade=t=in:st=0:d=${safeFadeIn.toFixed(2)}`);
@@ -145,9 +146,9 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
 
                 await Share.share({
                     title: 'Audio Recortado',
-                    text: 'Aquí tienes tu audio procesado con Cortador Pro',
+                    text: `Archivo listo: ${fileName}`,
                     url: savedFile.uri,
-                    dialogTitle: 'Guardar o compartir audio'
+                    dialogTitle: '¿Dónde quieres guardar tu audio?'
                 });
             } else {
                 // Web: Classic download
