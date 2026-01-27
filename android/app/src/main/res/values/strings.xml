@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cortador de Audio Pro</string>
+    <string name="title_activity_main">Cortador de Audio Pro</string>
+    <string name="package_name">com.vcgraphic.audiocutter</string>
+    <string name="custom_url_scheme">com.vcgraphic.audiocutter</string>
+</resources>
