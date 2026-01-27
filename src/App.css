@@ -8,7 +8,7 @@
 
 .main-header {
     background-color: #1e293b;
-    padding: 1.25rem;
+    padding: calc(0.75rem + env(safe-area-inset-top)) 1.25rem 0.75rem 1.25rem;
     border-bottom: 1px solid #334155;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
@@ -24,7 +24,7 @@
 }
 
 .header-text h1 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: bold;
     margin: 0;
 }
