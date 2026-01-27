@@ -136,19 +136,21 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             const uint8Array = new Uint8Array((data as any).buffer);
 
             if (Capacitor.isNativePlatform()) {
-                // Capacitor: Save and Share
+                // Capacitor: Save to Documents and Share
                 const base64Data = await uint8ArrayToBase64(uint8Array);
                 const savedFile = await Filesystem.writeFile({
                     path: fileName,
                     data: base64Data,
-                    directory: Directory.Cache
+                    directory: Directory.Documents
                 });
+
+                alert(`¡Guardado! El archivo se encuentra en tu carpeta de Documentos como: ${fileName}`);
 
                 await Share.share({
                     title: 'Audio Recortado',
                     text: `Archivo listo: ${fileName}`,
                     url: savedFile.uri,
-                    dialogTitle: '¿Dónde quieres guardar tu audio?'
+                    dialogTitle: '¿Quieres enviarlo a otra app?'
                 });
             } else {
                 // Web: Classic download
