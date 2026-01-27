@@ -174,7 +174,7 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
 
     const uint8ArrayToBase64 = (uint8: Uint8Array): Promise<string> => {
         return new Promise((resolve) => {
-            const blob = new Blob([uint8], { type: 'application/octet-stream' });
+            const blob = new Blob([uint8 as any], { type: 'application/octet-stream' });
             const reader = new FileReader();
             reader.onload = (e) => {
                 const result = e.target?.result as string;
