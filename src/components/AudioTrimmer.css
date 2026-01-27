@@ -6,6 +6,12 @@
     gap: 1.5rem;
 }
 
+@media (max-width: 640px) {
+    .trimmer-container {
+        gap: 1rem;
+    }
+}
+
 .card {
     background-color: #1e293b;
     border-radius: 1.5rem;
@@ -13,13 +19,27 @@
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
+@media (max-width: 640px) {
+    .card {
+        padding: 1.25rem;
+        border-radius: 1rem;
+    }
+}
+
 .file-name {
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 1rem 0;
     font-size: 1.125rem;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+    .file-name {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
 }
 
 .time-row {
