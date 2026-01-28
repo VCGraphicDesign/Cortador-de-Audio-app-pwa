@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { Download, Pause, Play, RotateCcw } from 'lucide-react';
@@ -176,20 +175,7 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
                     }
                 }
 
-                // Standard Share dialog (The user can also use this to save to Drive, Telegram, etc.)
-                const shareNow = confirm("¿Quieres compartir el archivo o guardarlo en otra ubicación?");
-                if (shareNow && savedUri) {
-                    try {
-                        await Share.share({
-                            title: 'Audio Recortado',
-                            text: `Archivo listo: ${fileName}`,
-                            url: savedUri,
-                            dialogTitle: '¿Dónde quieres enviar tu audio?'
-                        });
-                    } catch (shareErr) {
-                        console.log("Share skipped", shareErr);
-                    }
-                }
+
             } else {
                 // Web: Classic download
                 const url = URL.createObjectURL(new Blob([uint8Array as any], { type: mimeType }));
