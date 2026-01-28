@@ -136,24 +136,44 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             const uint8Array = new Uint8Array((data as any).buffer);
 
             if (Capacitor.isNativePlatform()) {
-                // Capacitor: Save to Cache (safe for all versions) and Share
                 const base64Data = await uint8ArrayToBase64(uint8Array);
+                let savedUri = "";
+
                 try {
-                    const savedFile = await Filesystem.writeFile({
+                    // Step 1: Try to save to Documents (Permanent)
+                    const saveResult = await Filesystem.writeFile({
+                        path: fileName,
+                        data: base64Data,
+                        directory: Directory.Documents
+                    });
+                    savedUri = saveResult.uri;
+                    alert(`¡Éxito! El audio se guardó en tu carpeta de Documentos: ${fileName}`);
+                } catch (e) {
+                    console.warn("Documents save failed, falling back to Cache", e);
+                    // Step 2: Fallback to Cache (Safe)
+                    const saveResult = await Filesystem.writeFile({
                         path: fileName,
                         data: base64Data,
                         directory: Directory.Cache
                     });
+                    savedUri = saveResult.uri;
+                    alert("El audio se procesó correctamente.");
+                }
 
-                    await Share.share({
-                        title: 'Audio Recortado',
-                        text: `Archivo listo: ${fileName}`,
-                        url: savedFile.uri,
-                        dialogTitle: '¿Dónde quieres guardar tu audio?'
-                    });
-                } catch (fsErr) {
-                    console.error("Filesystem error:", fsErr);
-                    alert("No se pudo guardar el archivo en el dispositivo.");
+                // Step 3: Optional Share (standard way to 'Download' to public folders on mobile)
+                const shareNow = confirm("¿Quieres abrir el menú para guardar el archivo en otra carpeta o enviarlo por WhatsApp?");
+                if (shareNow && savedUri) {
+                    try {
+                        await Share.share({
+                            title: 'Audio Recortado',
+                            text: `Archivo listo: ${fileName}`,
+                            url: savedUri,
+                            dialogTitle: '¿Dónde quieres guardar tu audio?'
+                        });
+                    } catch (shareErr) {
+                        // User cancelling share is not a 'save failure'
+                        console.log("Share cancelled or failed", shareErr);
+                    }
                 }
             } else {
                 // Web: Classic download
@@ -168,8 +188,8 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             }
 
         } catch (err) {
-            console.error("FFmpeg processing error:", err);
-            alert("Error al procesar el audio. Prueba sin fundidos (Fade) o con un archivo más pequeño.");
+            console.error("FFmpeg/Processing error:", err);
+            alert("Error al procesar el audio. Asegúrate de que el formato sea compatible o prueba con un fragmento más corto.");
         } finally {
             setProcessing(false);
         }
