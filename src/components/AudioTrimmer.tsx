@@ -138,41 +138,56 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             if (Capacitor.isNativePlatform()) {
                 const base64Data = await uint8ArrayToBase64(uint8Array);
                 let savedUri = "";
+                let saveMethod = "";
 
                 try {
-                    // Step 1: Try to save to Documents (Permanent)
+                    // Step 1: Try to save directly to the public 'Download' folder
                     const saveResult = await Filesystem.writeFile({
-                        path: fileName,
+                        path: `Download/${fileName}`,
                         data: base64Data,
-                        directory: Directory.Documents
+                        directory: Directory.ExternalStorage
                     });
                     savedUri = saveResult.uri;
-                    alert(`¡Éxito! El audio se guardó en tu carpeta de Documentos: ${fileName}`);
-                } catch (e) {
-                    console.warn("Documents save failed, falling back to Cache", e);
-                    // Step 2: Fallback to Cache (Safe)
-                    const saveResult = await Filesystem.writeFile({
-                        path: fileName,
-                        data: base64Data,
-                        directory: Directory.Cache
-                    });
-                    savedUri = saveResult.uri;
-                    alert("El audio se procesó correctamente.");
+                    saveMethod = "Descargas";
+                    alert(`¡Éxito! El audio se guardó directamente en tu carpeta de Descargas.`);
+                } catch (e1) {
+                    console.warn("Direct Download folder save failed", e1);
+                    try {
+                        // Step 2: Try Documents folder
+                        const saveResult = await Filesystem.writeFile({
+                            path: fileName,
+                            data: base64Data,
+                            directory: Directory.Documents
+                        });
+                        savedUri = saveResult.uri;
+                        saveMethod = "Documentos";
+                        alert(`Guardado en la carpeta de Documentos: ${fileName}`);
+                    } catch (e2) {
+                        console.warn("Documents save failed, using Cache", e2);
+                        // Step 3: Fallback to Cache (Always works)
+                        const saveResult = await Filesystem.writeFile({
+                            path: fileName,
+                            data: base64Data,
+                            directory: Directory.Cache
+                        });
+                        savedUri = saveResult.uri;
+                        saveMethod = "Caché";
+                        alert("Audio procesado. Usa el siguiente menú para elegir dónde guardarlo permanentemente.");
+                    }
                 }
 
-                // Step 3: Optional Share (standard way to 'Download' to public folders on mobile)
-                const shareNow = confirm("¿Quieres abrir el menú para guardar el archivo en otra carpeta o enviarlo por WhatsApp?");
+                // Standard Share dialog (The user can also use this to save to Drive, Telegram, etc.)
+                const shareNow = confirm("¿Quieres compartir el archivo o guardarlo en otra ubicación?");
                 if (shareNow && savedUri) {
                     try {
                         await Share.share({
                             title: 'Audio Recortado',
                             text: `Archivo listo: ${fileName}`,
                             url: savedUri,
-                            dialogTitle: '¿Dónde quieres guardar tu audio?'
+                            dialogTitle: '¿Dónde quieres enviar tu audio?'
                         });
                     } catch (shareErr) {
-                        // User cancelling share is not a 'save failure'
-                        console.log("Share cancelled or failed", shareErr);
+                        console.log("Share skipped", shareErr);
                     }
                 }
             } else {
