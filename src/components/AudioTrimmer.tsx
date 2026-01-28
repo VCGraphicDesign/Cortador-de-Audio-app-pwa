@@ -136,25 +136,28 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             const uint8Array = new Uint8Array((data as any).buffer);
 
             if (Capacitor.isNativePlatform()) {
-                // Capacitor: Save to Documents and Share
+                // Capacitor: Save to Cache (safe for all versions) and Share
                 const base64Data = await uint8ArrayToBase64(uint8Array);
-                const savedFile = await Filesystem.writeFile({
-                    path: fileName,
-                    data: base64Data,
-                    directory: Directory.Documents
-                });
+                try {
+                    const savedFile = await Filesystem.writeFile({
+                        path: fileName,
+                        data: base64Data,
+                        directory: Directory.Cache
+                    });
 
-                alert(`¡Guardado! El archivo se encuentra en tu carpeta de Documentos como: ${fileName}`);
-
-                await Share.share({
-                    title: 'Audio Recortado',
-                    text: `Archivo listo: ${fileName}`,
-                    url: savedFile.uri,
-                    dialogTitle: '¿Quieres enviarlo a otra app?'
-                });
+                    await Share.share({
+                        title: 'Audio Recortado',
+                        text: `Archivo listo: ${fileName}`,
+                        url: savedFile.uri,
+                        dialogTitle: '¿Dónde quieres guardar tu audio?'
+                    });
+                } catch (fsErr) {
+                    console.error("Filesystem error:", fsErr);
+                    alert("No se pudo guardar el archivo en el dispositivo.");
+                }
             } else {
                 // Web: Classic download
-                const url = URL.createObjectURL(new Blob([uint8Array], { type: mimeType }));
+                const url = URL.createObjectURL(new Blob([uint8Array as any], { type: mimeType }));
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = fileName;
@@ -165,8 +168,8 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
             }
 
         } catch (err) {
-            console.error(err);
-            alert("Error al procesar el audio. Asegúrate de que el formato sea compatible.");
+            console.error("FFmpeg processing error:", err);
+            alert("Error al procesar el audio. Prueba sin fundidos (Fade) o con un archivo más pequeño.");
         } finally {
             setProcessing(false);
         }
