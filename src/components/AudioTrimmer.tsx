@@ -259,15 +259,15 @@ const AudioTrimmer: React.FC<AudioTrimmerProps> = ({ audioData, onReset }) => {
                 <div className="fade-controls">
                     <button
                         className={`fade-btn ${fadeInDuration > 0 ? 'active' : ''}`}
-                        onClick={() => setFadeInDuration(prev => prev > 0 ? 0 : 3)}
+                        onClick={() => setFadeInDuration(prev => prev > 0 ? 0 : 5)}
                     >
-                        Fade In: 3s
+                        Fade In: 5s
                     </button>
                     <button
                         className={`fade-btn ${fadeOutDuration > 0 ? 'active' : ''}`}
-                        onClick={() => setFadeOutDuration(prev => prev > 0 ? 0 : 3)}
+                        onClick={() => setFadeOutDuration(prev => prev > 0 ? 0 : 5)}
                     >
-                        Fade Out: 3s
+                        Fade Out: 5s
                     </button>
                 </div>
             </div>
