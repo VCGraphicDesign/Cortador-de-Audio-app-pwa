@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "cap:sync": "npx cap sync",
     "cap:open": "npx cap open android",
-    "cap:run": "npx cap run android"
+    "cap:run": "npx cap run android",
+    "assets:generate": "npx @capacitor/assets generate --android"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",
